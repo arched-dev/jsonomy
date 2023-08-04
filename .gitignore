@@ -1,0 +1,10 @@
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+/.pytest_cache/
+/.idea/
+/build/
+/dist/
+/jsonomy.egg-info/

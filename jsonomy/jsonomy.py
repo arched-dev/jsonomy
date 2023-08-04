@@ -1,56 +1,38 @@
-import datetime
-import re
-from typing import Any, Dict, List
-from dateutil.parser import parse
 
-
-def is_date(string: str) -> tuple[bool, datetime] | tuple[bool, str]:
-    """
-    Checks if a string can be parsed into a date.
-
-    Args:
-        string (str): The string to be checked.
-
-    Returns:
-        bool: True if the string can be parsed into a date, False otherwise.
-        str: The parsed date if the string is a date, otherwise the original string.
-    """
-    if isinstance(string, str) and len(string) > 6 and any(x in string for x in ["-", ":", "/"]):
-        try:
-            return True, parse(string)
-        except ValueError:
-            pass
-
-    return False, string
-
-
-def convert_camel_to_snake(name: str) -> str:
-    """
-    Converts a camel case string to snake case.
-
-    Args:
-        name (str): The string to be converted.
-
-    Returns:
-        str: The converted string.
-    """
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-
+from typing import Any, Dict, List, Optional, Union
+from jsonomy.functions import convert_camel_to_snake, is_date, validate_and_parse_json
+import pprint
 
 class Jsonomy:
     """
-    Designed to format data from a JSON response.
+    Designed to format data from a JSON response in either a dictionary or string format & make it more pythonic.
     It includes methods to convert camel case to snake case,
     identify and parse strings that represent dates,
     and recursively process data structures.
     """
+    data: Optional[Dict] = None
 
     def __init__(self, data: Any):
-        """Initializes the JSONFormatter with the data to be processed."""
-        self.data = data
+        """
+        Initialises the JSONFormatter with the data to be processed.
 
-    def process_dict(self, val: Dict) -> Dict:
+        Args:
+            data (Any): The json data to be processed.
+
+        """
+        self.load(data)
+
+    def load(self, data: Any):
+        """
+        Re-initialises the JSONFormatter with the data to be processed.
+
+        Args:
+            data (Any): The json data to be processed.
+
+        """
+        self.data = validate_and_parse_json(data)
+
+    def _process_dict(self, val: Dict) -> Dict:
         """
         Processes a dictionary, converting keys to snake case and recursively processing the values.
 
@@ -61,7 +43,7 @@ class Jsonomy:
             Dict: The processed dictionary.
         """
         if isinstance(val, dict):
-            return {convert_camel_to_snake(k): self.process_value(v) for k, v in val.items()}
+            return {convert_camel_to_snake(k): self._process_value(v) for k, v in val.items()}
         return val
 
     def process_list(self, val: List) -> List:
@@ -75,10 +57,10 @@ class Jsonomy:
             List: The processed list.
         """
         if isinstance(val, list):
-            return [self.process_value(v) for v in val]
+            return [self._process_value(v) for v in val]
         return val
 
-    def process_value(self, val: Any) -> Any:
+    def _process_value(self, val: Any) -> Any:
         """
         Processes a value. If the value is a string, it is checked to see if it is a date.
         If the value is a dictionary or a list, it is processed recursively.
@@ -94,7 +76,7 @@ class Jsonomy:
             if date_found:
                 return parsed
         if isinstance(val, dict):
-            return self.process_dict(val)
+            return self._process_dict(val)
         if isinstance(val, list):
             return self.process_list(val)
         return val
@@ -106,11 +88,17 @@ class Jsonomy:
         Returns:
             Any: The processed data.
         """
-        return self.process_value(self.data)
+        return self._process_value(self.data)
 
-    def pprint(self) -> None:
+    def pprint(self, as_str=False) -> Union[str, None]:
         """
-        Pretty prints the processed data.
+        Pretty prints the processed data or returns it as a string.
+
+        Args:
+            as_str (bool): If True, returns the pretty printed data as a string.
+
         """
-        import pprint
-        pprint.pprint(self.format())
+        if as_str:
+            return pprint.pformat(self.format())
+        else:
+            pprint.pprint(self.format())
