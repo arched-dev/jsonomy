@@ -58,7 +58,7 @@ def convert_camel_to_snake(name: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def is_date(string: Union[str, int]) -> tuple[bool, datetime] | tuple[bool, str]:
+def is_date(string: Union[str, int]) -> Union[tuple[bool, datetime], tuple[bool, str]]:
     """
     Checks if a string can be parsed into a date.
 
