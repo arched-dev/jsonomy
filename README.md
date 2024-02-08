@@ -53,4 +53,4 @@ pretty_json = Jsonomy(data).pprint(as_str=True)
 This project is licensed under the terms of the MIT license.
 
 ## Contact
-For questions, feel free to reach out to Lewis Morris at lewis.morris@gmail.com
+For questions, feel free to reach out to Lewis Morris at hello@arched.dev
